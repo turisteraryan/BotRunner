@@ -1,0 +1,60 @@
+name: Run User Script Every 48 Hours
+
+on:
+  schedule:
+    - cron: '0 */48 * * *'  # Runs every 48 hours
+  workflow_dispatch: # Allows manual runs for testing or debugging
+
+jobs:
+  run-user-script:
+    runs-on: ubuntu-latest  # Use latest Ubuntu environment
+
+    steps:
+      # Step 1: Check out the user's repository
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # Step 2: Load environment variables from the .env file (if provided)
+      - name: Load environment variables
+        run: |
+          if [ -f .env ]; then
+            export $(cat .env | xargs)
+          fi
+
+      # Step 3: Setup Python (this can be modified for other languages)
+      - name: Setup Python 3.x (optional)
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'  # Use the latest version of Python 3.x
+
+      # Step 4: Install dependencies (if the user has a requirements.txt file)
+      - name: Install Python dependencies
+        if: exists('requirements.txt')
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Step 5: Install Node.js (for Node.js-based bots)
+      - name: Setup Node.js (optional)
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'  # Use Node.js version 16.x (latest LTS)
+
+      # Step 6: Install Node.js dependencies (if user has package.json)
+      - name: Install Node.js dependencies
+        if: exists('package.json')
+        run: |
+          npm install
+
+      # Step 7: Run the user's script (Python, Node.js, or another language)
+      - name: Run user script
+        run: |
+          # Replace this with the script file the user wants to run
+          python your_script.py || node your_script.js
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}  # Example env variable
+
+      # Step 8: Restart bot automatically after failure or completion
+      - name: Restart bot after failure or completion
+        if: always()  # Ensures the workflow always continues even after failures
+        run: echo "User script finished or failed. Restarting in 48 hours."
