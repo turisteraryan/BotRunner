@@ -26,3 +26,5 @@ This repository template allows you to run your Telegram bot script automaticall
 
 ## Example .env file:
 
+TELEGRAM_TOKEN=your_telegram_bot_token
+API_KEY=your_api_key
